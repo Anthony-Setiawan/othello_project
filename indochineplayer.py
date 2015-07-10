@@ -187,22 +187,146 @@ class IndoChinePlayer:
             return False
 
     def utilityFunction(self,board,playerColor):
-        sumBlack = 0
-        sumWhite = 0
+
+
+
+        #no of discs
+        pDisc = 0
+        oDisc = 0
+        sDisc = 0
+        wDisc = 10
+        #no of corners
+        pCorners = 0
+        oCorners = 0
+        sCorners = 0
+        wCorners = 802
+        
+        #no of squares close to corners
+        pNextToCorners = 0
+        oNextToCorners = 0
+        sNextToCorners = 0
+        wNextToCorners = 382
+
+        # HEURISTICS 1: disc difference
         for i in xrange(len(board)):
             for j in xrange(len(board[i])):
                 
-                if board[i][j] == 'W':
-                    sumWhite += 1
-                elif board[i][j] == 'B':
-                    sumBlack += 1
+                if board[i][j] == playerColor:
+                    pDisc += 1
+                elif board[i][j] != 'G':
+                    oDisc += 1
                 else:
                     continue
-        if playerColor=='B':
-            return sumBlack-sumWhite
-        else:
-            return sumWhite-sumBlack
+
+
+        # HEURISTICS 2: corners advantage
+        topL = board[0][0]
+        topR = board[0][7]
+        btmL = board[7][0]
+        btmR = board[7][7]
+        if topL != 'G':
+            if topL == playerColor: 
+                pCorners+=1
+            else:
+                oCorners+=1
+            
+        if topR != 'G':
+            if topR == playerColor:
+                pCorners+=1
+            else:
+                oCorners+=1
         
+        if btmL != 'G':
+            if btmL == playerColor:
+                pCorners+=1
+            else:
+                oCorners+=1
+
+        if btmR != 'G':
+            if btmR == playerColor:
+                pCorners+=1
+            else:
+                oCorners+=1
+
+        # HEURISTIC 3: squares adjascent to corners are VERY bad
+	if board [0][0] == 'G':
+            if board[0][1] == playerColor:
+                pNextToCorners += 1
+            elif board[0][1] != 'G':
+                oNextToCorners += 1
+
+            if board[1][1] == playerColor:
+                pNextToCorners += 1
+            elif board[1][1] != 'G':
+                oNextToCorners += 1
+
+            if board[1][0] == playerColor:
+                pNextToCorners += 1
+            elif board[1][0] != 'G':
+                oNextToCorners += 1
+
+
+	if board[0][7] == 'G':
+            if board[0][6] == playerColor:
+                pNextToCorners += 1
+            elif board[0][6] != 'G':
+                oNextToCorners += 1
+            if board[1][6] == playerColor:
+                pNextToCorners += 1
+            elif board[1][6] != 'G':
+                oNextToCorners += 1
+            if board[1][7] == playerColor:
+                pNextToCorners += 1
+            elif board[1][7] != 'G':
+                oNextToCorners += 1
+
+
+	if board[7][0] == 'G':
+            if board[7][1] == playerColor:
+                pNextToCorners += 1
+            elif board[7][1] != 'G':
+                oNextToCorners += 1
+            if board[6][1] == playerColor:
+                pNextToCorners += 1
+            elif board[6][1] != 'G':
+                oNextToCorners += 1
+            if board[6][0] == playerColor:
+                pNextToCorners += 1
+            elif board[6][0] != 'G':
+                oNextToCorners += 1
+
+
+
+	if board[7][7] == 'G':
+            if board[6][7] == playerColor:
+                pNextToCorners += 1
+            elif board[6][7] != 'G':
+                oNextToCorners += 1
+            if board[6][6] == playerColor:
+                pNextToCorners += 1
+            elif board[6][6] != 'G':
+                oNextToCorners += 1
+            if board[7][6] == playerColor:
+                pNextToCorners += 1
+            elif board[7][6] != 'G':
+                oNextToCorners += 1
+
+
+
+
+        # weighted utility function
+
+        if (pDisc > oDisc):
+            sDisc = (100.0 * pDisc) / (pDisc+oDisc)
+        elif (pDisc < oDisc):
+            sDisc = -(100.0 * oDisc) / (pDisc+oDisc)
+        else:
+            sDisc = 0
+        sCorners = 25 * (pCorners - oCorners)
+	sNextToCorners = -12.5 * (pNextToCorners - oNextToCorners);
+        return (wDisc * sDisc + wCorners * sCorners + wNextToCorners * sNextToCorners)
+        
+
 
     def getNextBoard(self,board,action,playerColor):
         if action==None:
